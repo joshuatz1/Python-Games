@@ -1,0 +1,45 @@
+#No json file attached; may not run successfully. json file will be coming soon
+import cv2
+import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
+import random
+
+
+base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
+options = vision.HandLandmarkerOptions(base_options=base_options,
+                                       num_hands=5, min_tracking_confidence = 0.1)
+detector = vision.HandLandmarker.create_from_options(options)
+def getcolor():
+    color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    return color
+
+listofcolors = [getcolor(), getcolor(),getcolor(),getcolor(),getcolor() ]
+cap = cv2.VideoCapture(0)
+while True:
+    ret, frame = cap.read()
+    h, w, l = frame.shape
+    if ret == False:
+        continue
+    frame_RGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    mpimage = mp.Image(image_format = mp.ImageFormat.SRGB, data = frame_RGB)
+    results = detector.detect(mpimage)
+    handn = 0
+    for hands in results.hand_landmarks:
+        currentColor = listofcolors[handn]
+        handn = handn + 1
+        for point in hands:
+            nx = point.x
+            ny = point.y
+            ax = int(nx*w)
+            ay = int(ny*h)
+   
+               
+            cv2.circle(frame, (ax,ay), 5, currentColor, -1)
+
+
+
+    cv2.imshow("raw feed", frame)
+    cv2.waitKey(1)
+   
+
